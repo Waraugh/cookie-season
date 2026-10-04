@@ -145,3 +145,22 @@ document.addEventListener('click',e=>{
 document.addEventListener('focusin',e=>{
  if(e.target.matches('.quantity-control input:not([readonly])'))e.target.select();
 });
+
+let mobileMenuOpen=false;
+function setMobileMenu(open){
+ mobileMenuOpen=open;
+ $('#nav').classList[open?'add':'remove']('mobile-menu-open');
+ $('#mobile-menu-toggle').setAttribute('aria-expanded',String(open));
+ $('#mobile-menu-chevron').textContent=open?'⌃':'⌄';
+}
+const renderBeforeMobileMenu=render;
+render=function(){
+ renderBeforeMobileMenu();
+ $('#mobile-current-page').textContent=NAV.find(([id])=>id===view)?.[2]||'Invited guest preview';
+ setMobileMenu(false);
+};
+$('#mobile-menu-toggle').addEventListener('click',()=>setMobileMenu(!mobileMenuOpen));
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&mobileMenuOpen){setMobileMenu(false);$('#mobile-menu-toggle').focus();}
+});
+render();
