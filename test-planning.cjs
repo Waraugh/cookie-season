@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm');
+const E=require('./dist/engine.js');
+const s={ingredients:[{id:0,name:'Flour',unit:'cup',unitsPerPackage:4,price:8,pantry:0.5,unitFactors:{g:1/120}},{id:1,name:'Sugar',unit:'cup',unitsPerPackage:8,price:4,pantry:0}],recipes:[{id:0,name:'Cookies',yield:24,baked:0,lines:[{ingredientId:0,amount:240,unit:'g'},{ingredientId:1,amount:2,unit:'tbsp'}]}],requests:[{id:'a',status:'Accepted',items:{0:25}},{id:'b',status:'Accepted',items:{0:10}},{id:'c',status:'Pending',items:{0:1000}}]};
+let p=E.calculate(s);assert.equal(p.requested,35);assert.equal(p.batches,2);assert.equal(p.produced,48);assert.equal(p.extra,13);assert.equal(p.ingredientPlans[0].amount,4);assert.equal(p.ingredientPlans[0].buy,1);assert.equal(p.spend,12);assert.equal(p.usedCost,8.125);
+assert.equal(E.convert(1,'cup','tbsp',s.ingredients[0]),16);assert.equal(E.convert(1,'lb','g',{unit:'g'}),453.59237);
+s.recipes[0].lines.pop();p=E.calculate(s);assert.equal(p.ingredientPlans.length,1);assert.equal(p.usedCost,8);assert.equal(p.spend,8);
+s.recipes[0].lines.push({ingredientId:1,amount:1,unit:'cup'});assert.equal(E.calculate(s).usedCost,9);
+s.recipes[0].lines[0].unit='each';p=E.calculate(s);assert.equal(p.missingConversions,1);assert.equal(p.ingredientPlans[0].buy,null);assert.equal(p.ingredientPlans[0].spend,null);assert(p.issues.length>0);assert.equal(p.spend,4);
+s.ingredients[0].unitFactors.each=1;assert.equal(E.calculate(s).missingConversions,0);
+s.ingredients[0].price=null;assert.equal(E.calculate(s).missingPrices,1);assert(E.calculate(s).recipePlans[0].missing);
+s.ingredients[0].price=8;s.recipes[0].archived=true;p=E.calculate(s);assert.equal(p.requested,35);assert.equal(p.archivedRequests.length,1);
+s.requests[0].status='Cancelled';s.requests[1].status='Cancelled';p=E.calculate(s);assert.equal(p.batches,0);assert.equal(p.ingredientPlans.length,0);
+const nodes={},handlers={};const node=k=>nodes[k]??={innerHTML:'',textContent:'',open:false,classList:{add(){},remove(){}},addEventListener(event,cb){this[event]=cb;},showModal(){this.open=true;},close(){this.open=false;},insertAdjacentHTML(pos,html){this.innerHTML=html+this.innerHTML;},focus(){},setSelectionRange(){}};
+const c={console,structuredClone,Intl,Date,JSON,Number,String,Object,Array,Math,Set,clearTimeout,setTimeout,crypto:require('node:crypto').webcrypto,localStorage:{getItem:()=>null,setItem(){}},location:{hash:''},document:{querySelector:node,addEventListener(event,cb){(handlers[event]??=[]).push(cb);},querySelectorAll(){return[]}},addEventListener(){},scrollTo(){},print(){},confirm:()=>false};c.window=c;c.globalThis=c;vm.createContext(c);
+for(const f of ['source-data.js','engine.js','app.js','manage.js'])vm.runInContext(fs.readFileSync('dist/'+f,'utf8'),c,{filename:f});
+for(const v of ['overview','requests','bake','shopping','recipes','ingredients','settings','guest']){vm.runInContext(`view='${v}';render()`,c);assert(nodes['#main'].innerHTML.length>500);assert(!/NaN|undefined|Infinity/.test(nodes['#main'].innerHTML),v);}
+assert.equal(vm.runInContext('plan.requested',c),0);assert.equal(vm.runInContext('state.requests.length',c),0);assert.equal(vm.runInContext('plan.issues.length',c),0);
+vm.runInContext(`openRecipe(0);recipeDraft.name='Test recipe';recipeDraft.id=nextId(state.recipes);recipeDraft.instructions='Bake and cool.';recipeDraft.lines.push({ingredientId:state.ingredients[0].id,amount:1,unit:state.ingredients[0].unit});saveRecipeDraft({preventDefault(){}});`,c);
+assert.equal(vm.runInContext('state.recipes.length',c),39);assert.equal(vm.runInContext('state.recipes.at(-1).instructions',c),'Bake and cool.');
+vm.runInContext(`openRecipe(state.recipes.at(-1).id);recipeDraft.lines.splice(0,1);saveRecipeDraft({preventDefault(){}})`,c);assert.equal(vm.runInContext('state.recipes.at(-1).lines.length',c),10);
+vm.runInContext(`openIngredient(null);ingredientDraft.name='Test spice';ingredientDraft.unit='tsp';ingredientDraft.package='Small jar';ingredientDraft.unitsPerPackage=12;ingredientDraft.price=3;saveIngredientDraft({preventDefault(){}})`,c);assert.equal(vm.runInContext("state.ingredients.at(-1).priceKind",c),'Manual');
+vm.runInContext(`openRecipe(state.recipes.at(-1).id);recipeDraft.lines=[{ingredientId:state.ingredients.at(-1).id,amount:2,unit:'tsp'}];recipeDraft.yield=12;saveRecipeDraft({preventDefault(){}});state.requests.push({id:'test',name:'Test person',date:'2026-12-20',status:'Accepted',items:{[state.recipes.at(-1).id]:24}});persist();`,c);
+assert.equal(vm.runInContext('plan.recipePlans.at(-1).batches',c),2);assert.equal(vm.runInContext('plan.recipePlans.at(-1).batchCost',c),0.5);assert.equal(vm.runInContext('plan.ingredientPlans.at(-1).buy',c),1);
+vm.runInContext('validateBackup(structuredClone(state))',c);
+assert.throws(()=>vm.runInContext('validateBackup({recipes:[],ingredients:[],requests:[{name:"Bad"}]})',c));
+vm.runInContext("state.recipes.at(-1).archived=true;view='guest';render()",c);assert(!nodes['#main'].innerHTML.includes('Test recipe'));
+vm.runInContext("view='requests';render()",c);assert(nodes['#main'].innerHTML.includes('Test recipe'));
+for(const a of ['openRecipe(0)','openIngredient(0)','openRequest()','openPerson("test")','openOrphan()']){vm.runInContext(a,c);assert(!/NaN|undefined|Infinity/.test(nodes['#modal-content'].innerHTML),a);}
+console.log('Passed: unit conversion, ingredient addition/removal, shared whole batches, pantry and costs, missing conversions and prices, archive preservation, eight view renders, recipe creation/editing, ingredient creation, backup validation, and archived guest exclusion.');
