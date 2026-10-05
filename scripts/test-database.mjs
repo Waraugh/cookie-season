@@ -1,0 +1,17 @@
+import {PGlite} from '@electric-sql/pglite';import fs from 'node:fs/promises';import assert from 'node:assert/strict';
+const db=new PGlite();
+const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',stranger='33333333-3333-4333-8333-333333333333';
+await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to anon,authenticated;insert into auth.users values('${a}'),('${b}'),('${stranger}');`);
+await db.exec(await fs.readFile('backend/schema.sql','utf8'));
+await db.exec(`insert into public.bakers values('${a}'),('${b}');`);
+const login=async id=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
+const save=async(revision,data)=>{const r=await db.query('select public.save_kitchen($1,$2::jsonb) as result',[revision,JSON.stringify(data)]);return r.rows[0].result;};
+const data={recipes:[],ingredients:[],requests:[],season:2026};
+await login(a);let r=await save(0,data);assert.equal(r.revision,1);r=await save(1,{...data,season:2027});assert.equal(r.revision,2);assert.equal((await db.query('select * from public.kitchen_snapshots')).rows.length,1);
+await assert.rejects(save(1,data),e=>e.code==='40001');assert.equal((await db.query('select revision from public.kitchens')).rows[0].revision,2);
+await assert.rejects(save(null,data),e=>e.code==='22023');await assert.rejects(save(2,{recipes:[]}),e=>e.code==='22023');
+await login(b);assert.equal((await db.query('select * from public.kitchens')).rows.length,0);assert.equal((await db.query('select * from public.kitchen_snapshots')).rows.length,0);await assert.rejects(save(2,data),e=>e.code==='40001');await save(0,data);
+await login(stranger);assert.equal((await db.query('select * from public.kitchens')).rows.length,0);await assert.rejects(save(0,data),e=>e.code==='42501');
+await db.exec('reset role;set role anon');await assert.rejects(db.query('select * from public.kitchens'),e=>e.code==='42501');await assert.rejects(save(0,data),e=>e.code==='42501');
+await login(a);for(let revision=2;revision<35;revision++)await save(revision,data);assert.equal((await db.query('select * from public.kitchen_snapshots')).rows.length,30);
+console.log('Passed actual PostgreSQL checks: account allowlist, RLS isolation, anonymous denial, creation/update, revision conflicts, invalid data rejection and 30-version retention. Supabase-hosted login still requires live verification.');await db.close();

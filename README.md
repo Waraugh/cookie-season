@@ -1,21 +1,24 @@
 # Cookie Season
 
-Holiday baking planner with editable recipes, ingredients, requests, whole-batch planning, pantry-aware shopping and cost estimates.
+Baker-only planning for manual requests, shared whole batches, WV/OH pantry and freezer stock, shopping, donations and handoffs.
 
-## Netlify
+- Netlify serves the application.
+- Supabase provides email/password authentication and PostgreSQL persistence.
+- Row-level policies restrict access to approved baker accounts.
+- Saves use revision checks; conflicts retain the local edits for download.
 
-Create a separate GitHub repository for this project and import it as a new Netlify project in the existing account. Use the production branch `main` and publish directory `dist`. No build command or dependency installation is needed. The included `netlify.toml` configures deployment.
+See [SETUP.md](SETUP.md) before deploying this branch.
 
-Choose a neutral project name; Netlify will report the available production address. The radio project does not need any changes.
+## Development
 
-## Current stage
+```bash
+npm ci
+npm test
+npm run build
+npx playwright install chromium
+npm run test:ui
+```
 
-This is a browser-local review prototype. It starts with an empty request list, imported recipes requiring review, and illustrative prices. Each browser has independent data. Kitchen Settings offers JSON backup and restore.
+Build configuration uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Only a publishable/anon key is accepted. No service-role secrets belong in the browser bundle.
 
-Moving hosts does not provide authentication or shared storage. Invite-only access must be enforced by a backend before this is used for collecting real requests. Do not rely on a hidden link or a client-side password to restrict access.
-
-Browser storage belongs to the site origin. Export a kitchen backup from the previous host before moving any user-entered corrections, then restore it on the new host.
-
-## Checks
-
-Run `node test-planning.cjs` to verify calculation boundaries and management behavior. The static files are in `dist/`.
+`dist/` holds application source; `public/` is generated. The browser suite supplies simulated service responses to test interactions and save recovery. `scripts/test-database.mjs` runs the production SQL in local PostgreSQL via PGlite and checks row access, allowed accounts, revisions and retention. Hosted integration checks remain a release requirement.
