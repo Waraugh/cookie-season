@@ -1,0 +1,36 @@
+.theme-picker{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.theme-picker select{color:var(--ink);background:var(--white);border:1px solid var(--line);border-radius:7px;padding:8px;min-height:40px}
+[hidden]{display:none!important}
+html[data-theme=dark]{color-scheme:dark;--green:#9ac8ae;--ink:#e4ede7;--muted:#a7b6ad;--cream:#151c19;--line:#35433b;--orange:#e4a579;--light:#293b30;--white:#202b25}
+html[data-theme=dark] :is(.sidebar,.topbar,th,.field input,.field select,.field textarea,.inline-input,.ingredient-edit-row input,.ingredient-edit-row select,.equivalence-row input,.equivalence-row select){background:#1b2520;color:var(--ink)}
+html[data-theme=dark] :is(.panel,.metric,.recipe-card,.search,.filter,dialog,.mobile-menu-toggle,.sidebar #nav.mobile-menu-open,.auth-card,.quantity-control){background:var(--white);color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] :is(.home-badge,.avatar,.recipe-art,.table-total,.order-summary,.editor-estimate,.step strong,.quantity-control button){background:#293b30;color:var(--ink)}
+html[data-theme=dark] :is(.btn:not(.quiet),.filter.active,nav button.active,.toast){background:#38694f;color:#fff}
+html[data-theme=dark] :is(nav button,.metric-note,.progress-number,.hero p,.recipe-note){color:var(--muted)}
+html[data-theme=dark] :is(.row-click:hover,button.metric-link:hover){background:#2a3930}
+html[data-theme=dark] .person-row{border-color:var(--line)}
+html[data-theme=dark] .notice{background:#382f22;color:#eed3a6;border-color:#685335}
+html[data-theme=dark] .status{background:#2e4433;color:#c0deb9}
+html[data-theme=dark] .status.pending{background:#493622;color:#eac18e}
+html[data-theme=dark] .status.packed{background:#293c4b;color:#bdd5e9}
+html[data-theme=dark] .danger-link{color:#f3b494}
+html.kiosk .app{display:block}
+html.kiosk .sidebar{position:sticky;top:0;z-index:5;width:100%;height:auto;padding:12px 18px;border-right:0;border-bottom:1px solid var(--line)}
+html.kiosk :is(.brand,.season-label,.side-bottom,.mobile-menu-toggle){display:none}
+html.kiosk .sidebar #nav{display:flex!important;flex-wrap:wrap;gap:8px;margin:0;overflow:visible}
+html.kiosk #nav button{min-height:48px;min-width:100px;padding:12px 16px;font-size:15px;white-space:nowrap;touch-action:manipulation}
+html.kiosk .workspace{margin:0;width:100%}
+html.kiosk .topbar{min-height:54px;height:auto;padding:8px 20px;gap:12px;flex-wrap:wrap}
+html.kiosk main{padding:24px;max-width:1800px}
+html.kiosk :is(.text-link,.filter,.close){min-height:44px;min-width:44px;padding:10px;font-size:14px;touch-action:manipulation}
+html.kiosk :is(.search,.field input,.field select){min-height:44px;font-size:16px}
+html.kiosk :is(td,.subtitle,.list-note){font-size:14px}
+html.kiosk .page-head h1{font-size:32px}
+html.kiosk #sign-out{display:none!important}
+html.kiosk .page-buttons:empty{display:none}
+html.kiosk :is(input,select,textarea):disabled{opacity:1;color:var(--ink);cursor:default}
+@media(max-width:760px){.theme-picker{font-size:0;gap:0}.theme-picker select{font-size:12px}html.kiosk main{padding:18px}html.kiosk #nav button{min-width:0;flex:1 0 auto;font-size:14px;padding:10px 12px}html.kiosk .nav-icon{display:none}}
+@media print{html[data-theme=dark]{--ink:#25382e;--muted:#64705f;--cream:#fff;--line:#ddd;--white:#fff}html[data-theme=dark] :is(body,.panel,.metric,th,td,dialog,.home-badge){background:#fff;color:#25382e}.theme-picker{display:none}}
+
+html[data-theme=dark] :is(.workspace,.auth-shell){background:var(--cream)}
+html[data-theme=dark] .auth-card p{color:var(--muted)}
+html[data-theme=dark] .sync-error{background:var(--white);color:var(--ink)}

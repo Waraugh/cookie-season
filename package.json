@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node test-planning.cjs && node test-locations.cjs && node scripts/test-database.mjs",
+    "test": "node test-planning.cjs && node test-locations.cjs && node scripts/test-database.mjs && node test-display.cjs",
     "test:ui": "npm run build && node scripts/test-ui.mjs"
   },
   "dependencies": {
