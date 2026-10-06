@@ -11,10 +11,10 @@ s.ingredients[0].unitFactors.each=1;assert.equal(E.calculate(s).missingConversio
 s.ingredients[0].price=null;assert.equal(E.calculate(s).missingPrices,1);assert(E.calculate(s).recipePlans[0].missing);
 s.ingredients[0].price=8;s.recipes[0].archived=true;p=E.calculate(s);assert.equal(p.requested,35);assert.equal(p.archivedRequests.length,1);
 s.requests[0].status='Cancelled';s.requests[1].status='Cancelled';p=E.calculate(s);assert.equal(p.batches,0);assert.equal(p.ingredientPlans.length,0);
-const nodes={},handlers={};const node=k=>nodes[k]??={innerHTML:'',textContent:'',open:false,classList:{add(){},remove(){}},addEventListener(event,cb){this[event]=cb;},showModal(){this.open=true;},close(){this.open=false;},insertAdjacentHTML(pos,html){this.innerHTML=html+this.innerHTML;},focus(){},setSelectionRange(){}};
+const nodes={},handlers={};const node=k=>nodes[k]??={innerHTML:'',textContent:'',open:false,classList:{add(){},remove(){}},addEventListener(event,cb){this[event]=cb;},setAttribute(name,value){this[name]=value;},showModal(){this.open=true;},close(){this.open=false;},insertAdjacentHTML(pos,html){this.innerHTML=html+this.innerHTML;},focus(){},setSelectionRange(){}};
 const c={console,structuredClone,Intl,Date,JSON,Number,String,Object,Array,Math,Set,clearTimeout,setTimeout,crypto:require('node:crypto').webcrypto,localStorage:{getItem:()=>null,setItem(){}},location:{hash:''},document:{querySelector:node,addEventListener(event,cb){(handlers[event]??=[]).push(cb);},querySelectorAll(){return[]}},addEventListener(){},scrollTo(){},print(){},confirm:()=>false};c.window=c;c.globalThis=c;vm.createContext(c);
 for(const f of ['source-data.js','engine.js','app.js','manage.js'])vm.runInContext(fs.readFileSync('dist/'+f,'utf8'),c,{filename:f});
-for(const v of ['overview','requests','bake','shopping','recipes','ingredients','settings','guest']){vm.runInContext(`view='${v}';render()`,c);assert(nodes['#main'].innerHTML.length>500);assert(!/NaN|undefined|Infinity/.test(nodes['#main'].innerHTML),v);}
+for(const v of ['overview','requests','bake','shopping','recipes','ingredients','settings']){vm.runInContext(`view='${v}';render()`,c);assert(nodes['#main'].innerHTML.length>500);assert(!/NaN|undefined|Infinity/.test(nodes['#main'].innerHTML),v);}
 assert.equal(vm.runInContext('plan.requested',c),0);assert.equal(vm.runInContext('state.requests.length',c),0);assert.equal(vm.runInContext('plan.issues.length',c),0);
 vm.runInContext(`openRecipe(0);recipeDraft.name='Test recipe';recipeDraft.id=nextId(state.recipes);recipeDraft.instructions='Bake and cool.';recipeDraft.lines.push({ingredientId:state.ingredients[0].id,amount:1,unit:state.ingredients[0].unit});saveRecipeDraft({preventDefault(){}});`,c);
 assert.equal(vm.runInContext('state.recipes.length',c),39);assert.equal(vm.runInContext('state.recipes.at(-1).instructions',c),'Bake and cool.');
@@ -24,7 +24,15 @@ vm.runInContext(`openRecipe(state.recipes.at(-1).id);recipeDraft.lines=[{ingredi
 assert.equal(vm.runInContext('plan.recipePlans.at(-1).batches',c),2);assert.equal(vm.runInContext('plan.recipePlans.at(-1).batchCost',c),0.5);assert.equal(vm.runInContext('plan.ingredientPlans.at(-1).buy',c),1);
 vm.runInContext('validateBackup(structuredClone(state))',c);
 assert.throws(()=>vm.runInContext('validateBackup({recipes:[],ingredients:[],requests:[{name:"Bad"}]})',c));
-vm.runInContext("state.recipes.at(-1).archived=true;view='guest';render()",c);assert(!nodes['#main'].innerHTML.includes('Test recipe'));
+vm.runInContext("state.recipes.at(-1).archived=true;view='recipes';render()",c);assert(!nodes['#main'].innerHTML.includes('Test recipe'));
 vm.runInContext("view='requests';render()",c);assert(nodes['#main'].innerHTML.includes('Test recipe'));
 for(const a of ['openRecipe(0)','openIngredient(0)','openRequest()','openPerson("test")','openOrphan()']){vm.runInContext(a,c);assert(!/NaN|undefined|Infinity/.test(nodes['#modal-content'].innerHTML),a);}
-console.log('Passed: unit conversion, ingredient addition/removal, shared whole batches, pantry and costs, missing conversions and prices, archive preservation, eight view renders, recipe creation/editing, ingredient creation, backup validation, and archived guest exclusion.');
+console.log('Passed: unit conversion, ingredient addition/removal, shared whole batches, pantry and costs, missing conversions and prices, archive preservation, seven view renders, recipe creation/editing, ingredient creation, backup validation, and archived recipe exclusion.');
+
+vm.runInContext("state.ingredients.at(-1).unitsPerPackage=3;persist()",c);assert.equal(vm.runInContext('plan.ingredientPlans.at(-1).buy',c),2);assert.equal(vm.runInContext('plan.recipePlans.at(-1).batchCost',c),2);
+console.log('Passed: usable package amounts update purchase rounding and costs.');
+
+vm.runInContext("view='ingredients';render()",c);assert.equal(nodes['#mobile-current-page'].textContent,'Ingredients & pantry');assert.equal(nodes['#mobile-menu-toggle']['aria-expanded'],'false');
+nodes['#mobile-menu-toggle'].click();assert.equal(nodes['#mobile-menu-toggle']['aria-expanded'],'true');
+vm.runInContext("view='shopping';render()",c);assert.equal(nodes['#mobile-current-page'].textContent,'Shopping list');assert.equal(nodes['#mobile-menu-toggle']['aria-expanded'],'false');
+console.log('Passed: mobile menu expands and closes on navigation, with current page and accessible state.');

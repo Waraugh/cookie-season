@@ -14,3 +14,15 @@ button.metric-link{display:block;width:100%;text-align:left;font:inherit;color:i
  .sidebar #nav button{min-height:46px;white-space:normal;font-size:14px;padding:12px 14px}
  .sidebar #nav .nav-icon{display:inline-block}
 }
+/* Focused kitchen workspace */
+.side-note,.hero,.demo-pill{display:none}
+.page-head h1{font-size:32px;line-height:1.15;letter-spacing:-1px}
+.page-head{margin-bottom:24px}.page-head .subtitle{max-width:640px}
+.topbar{min-height:64px}.home-tabs{margin-bottom:20px}.home-badge{display:inline-flex;align-items:center;justify-content:center;min-width:40px;padding:5px 10px;background:#e7eee8;border-radius:6px;font-size:12px;font-weight:700;color:#234637}
+.home-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}.home-summary strong{font-size:26px;display:block}.home-summary small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.recipe-art{height:90px}.recipe-art svg{width:74px;height:74px}.recipe-card{box-shadow:none}.recipe-body .eyebrow{display:none}
+.metric-link{text-align:left}.panel{box-shadow:none;border-radius:12px}.btn{border-radius:8px}.sidebar{background:#f3f5ef}.workspace{background:#fafbf8}
+#save-status{font-size:12px;color:var(--muted)}.auth-shell{min-height:100vh;display:grid;place-items:center;background:#f3f5ef;padding:24px}.auth-card{width:min(100%,420px);padding:32px;background:white;border:1px solid #dfe5dc;border-radius:16px}.auth-card h1{font-size:28px;margin-bottom:8px}.auth-card .btn{width:100%;margin-top:12px}.auth-card p{font-size:13px;color:#657064}.sync-error{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);max-width:650px;z-index:99;background:white;border:2px solid #a8543c;border-radius:10px;padding:18px;box-shadow:0 5px 30px #0002}
+@media(max-width:700px){.page-head h1{font-size:27px}.page-buttons{gap:8px}.home-summary{gap:8px}.home-summary strong{font-size:22px}.topbar{padding:12px 18px}.recipe-art{height:72px}.cards{gap:12px}.panel-head{padding:18px}.panel-body{padding:18px}.home-tabs{overflow:auto}.sidebar{border-bottom:1px solid #dfe5dc}}
+
+[hidden]{display:none!important}
